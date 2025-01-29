@@ -1,0 +1,1 @@
+Click is a vanity URL generator and tracker. I will do the readme stuff later.
