@@ -1,0 +1,6 @@
+# environment
+.env.local
+.vscode
+
+# go
+go.sum
