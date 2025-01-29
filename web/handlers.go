@@ -20,5 +20,5 @@ func (h *Handler) DefineRoutes(server *echo.Echo) {
 }
 
 func (h *Handler) handleGET(c echo.Context) error {
-	return c.String(http.StatusOK, "Hello world!")
+	return c.Render(http.StatusOK, "index.html", nil)
 }
