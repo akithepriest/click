@@ -2,6 +2,7 @@ package web
 
 import (
 	"html/template"
+	"os"
 
 	"github.com/labstack/echo/v4"
 )
@@ -29,5 +30,9 @@ func (w *WebServer) BindHandlers() {
 }
 
 func (w *WebServer) Start() {
-	w.server.Logger.Info(w.server.Start(":8080"))
+	listenAddr := os.Getenv("LISTEN_ADDRESS") 
+	if listenAddr == "" {
+		w.server.Logger.Fatal("LISTEN_ADDRESS is not defined in the environment")
+	}
+	w.server.Logger.Info(w.server.Start(listenAddr))
 }
