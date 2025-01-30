@@ -9,6 +9,7 @@ import (
 
 	"github.com/akithepriest/click/database"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type WebServer struct {
@@ -22,6 +23,7 @@ var t = TemplatesRenderer{
 func NewWebServer() *WebServer {
 	server := echo.New()
 	server.Renderer = &t
+	server.Logger.SetLevel(log.INFO)
 	
 	return &WebServer{
 		server: server,
