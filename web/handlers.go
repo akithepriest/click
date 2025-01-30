@@ -3,15 +3,20 @@ package web
 import (
 	"net/http"
 
+	"github.com/akithepriest/click/database"
 	"github.com/labstack/echo/v4"
 )
 
 // Handler binds http handler functions.
-// More fields will be added in this struct later.
-type Handler struct {}
+// Handler struct accepts database connection pool.
+type Handler struct {
+	db *database.PostgresDB
+}
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(db *database.PostgresDB) *Handler {
+	return &Handler{
+		db: db,
+	}
 }
 
 // Bind routes to their respective http handler.

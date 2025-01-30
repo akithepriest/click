@@ -1,9 +1,13 @@
 package web
 
 import (
+	"context"
+	"errors"
 	"html/template"
 	"os"
+	"time"
 
+	"github.com/akithepriest/click/database"
 	"github.com/labstack/echo/v4"
 )
 
@@ -24,9 +28,35 @@ func NewWebServer() *WebServer {
 	}
 }
 
+func (w *WebServer) initDB() (*database.PostgresDB, error){
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 30)
+	defer cancel()
+
+	connString := os.Getenv("PG_DATABASE_URL")
+	if connString == "" {
+		return nil, errors.New("failed to connect to postgresql database, could not find PG_DATABASE_URL in environment")
+	}
+	db, err := database.NewPgDB(ctx, connString)
+	if err != nil {
+		return nil, err
+	}
+	if db == nil {
+		return nil, errors.New("db: PostgresDB is null")
+	}
+	return db, nil
+}
+
 func (w *WebServer) BindHandlers() {
-	handler := NewHandler()
+	db, err := w.initDB()
+	if err != nil {
+		w.server.Logger.Fatal(err)
+		return 
+	}
+	w.server.Logger.Info("Connection to database has been established.")
+
+	handler := NewHandler(db)
 	handler.DefineRoutes(w.server)
+	w.server.Logger.Info("Handlers have been registered.")
 }
 
 func (w *WebServer) Start() {
