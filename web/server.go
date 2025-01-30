@@ -54,11 +54,24 @@ func (w *WebServer) BindHandlers() {
 	}
 	w.server.Logger.Info("Connection to database has been established.")
 
+	go w.createTables(db)
+
 	handler := NewHandler(db)
 	handler.DefineRoutes(w.server)
 	w.server.Logger.Info("Handlers have been registered.")
 }
 
+func (w *WebServer) createTables(db *database.PostgresDB) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 30)
+	defer cancel()
+
+	contents, err := db.ExecuteSQLFile(ctx, "database/sql/initial/models.sql")
+	w.server.Logger.Info("Executing SQL file: database/sql/initial/models.sql\n\n", contents)
+
+	if err != nil {
+		w.server.Logger.Error("Failed to run: database/sql/initial/models.sql because ", err)
+	}
+}
 func (w *WebServer) Start() {
 	listenAddr := os.Getenv("LISTEN_ADDRESS") 
 	if listenAddr == "" {
