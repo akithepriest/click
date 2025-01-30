@@ -29,7 +29,7 @@ func NewWebServer() *WebServer {
 }
 
 func (w *WebServer) initDB() (*database.PostgresDB, error){
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 30)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
 	defer cancel()
 
 	connString := os.Getenv("PG_DATABASE_URL")
@@ -62,7 +62,7 @@ func (w *WebServer) BindHandlers() {
 }
 
 func (w *WebServer) createTables(db *database.PostgresDB) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 30)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
 	defer cancel()
 
 	contents, err := db.ExecuteSQLFile(ctx, "database/sql/initial/models.sql")
