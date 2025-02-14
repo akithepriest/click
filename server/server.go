@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/akithepriest/click/database"
+	"github.com/akithepriest/click/handlers"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -55,8 +56,7 @@ func (w *WebServer) BindHandlers() {
 	}
 	w.server.Logger.Info("Connection to database has been established.")
 
-	handler := NewHandler(db)
-	handler.DefineRoutes(w.server)
+	handlers.BindHandlers(w.server, db)
 	w.server.Logger.Info("Handlers have been registered.")
 }
 
