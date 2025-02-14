@@ -10,6 +10,7 @@ import (
 	"github.com/akithepriest/click/database"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/log"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type WebServer struct {
@@ -30,22 +31,20 @@ func NewWebServer() *WebServer {
 	}
 }
 
-func (w *WebServer) initDB() (*database.PostgresDB, error){
+func (w *WebServer) initDB() (*mongo.Database, error){
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
 	defer cancel()
 
-	connString := os.Getenv("PG_DATABASE_URL")
-	if connString == "" {
-		return nil, errors.New("failed to connect to postgresql database, could not find PG_DATABASE_URL in environment")
-	}
-	db, err := database.NewPgDB(ctx, connString)
+	client, err := database.NewMongoClient(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if db == nil {
-		return nil, errors.New("db: PostgresDB is null")
+	if client == nil {
+		return nil, errors.New("db: mongo.Client is null")
 	}
-	return db, nil
+
+	database := client.Database("master")
+	return database, nil
 }
 
 func (w *WebServer) BindHandlers() {
@@ -56,24 +55,11 @@ func (w *WebServer) BindHandlers() {
 	}
 	w.server.Logger.Info("Connection to database has been established.")
 
-	go w.createTables(db)
-
 	handler := NewHandler(db)
 	handler.DefineRoutes(w.server)
 	w.server.Logger.Info("Handlers have been registered.")
 }
 
-func (w *WebServer) createTables(db *database.PostgresDB) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 10)
-	defer cancel()
-
-	contents, err := db.ExecuteSQLFile(ctx, "database/sql/initial/models.sql")
-	w.server.Logger.Info("Executing SQL file: database/sql/initial/models.sql\n\n", contents)
-
-	if err != nil {
-		w.server.Logger.Error("Failed to run: database/sql/initial/models.sql because ", err)
-	}
-}
 func (w *WebServer) Start() {
 	listenAddr := os.Getenv("LISTEN_ADDRESS") 
 	if listenAddr == "" {

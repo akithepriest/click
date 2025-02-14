@@ -3,17 +3,17 @@ package web
 import (
 	"net/http"
 
-	"github.com/akithepriest/click/database"
 	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Handler binds http handler functions.
 // Handler struct accepts database connection pool.
 type Handler struct {
-	db *database.PostgresDB
+	db *mongo.Database
 }
 
-func NewHandler(db *database.PostgresDB) *Handler {
+func NewHandler(db *mongo.Database) *Handler {
 	return &Handler{
 		db: db,
 	}

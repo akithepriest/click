@@ -2,55 +2,28 @@ package database
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"os"
-	"sync"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type PostgresDB struct {
-	db *pgxpool.Pool
-}
+func NewMongoClient(ctx context.Context) (*mongo.Client, error){
+	mongoDBConnURI := os.Getenv("MONGODB_CONN_STRING")
 
-var (
-	pgDBInstance *PostgresDB
-	pgOnce sync.Once
-)
-
-// Create a new connection pool and return the same.
-func NewPgDB(ctx context.Context, connString string) (*PostgresDB, error) {
-	var initErr error 
-	pgOnce.Do(func () {
-		db, err := pgxpool.New(ctx, connString)
-		if err != nil {
-			initErr = fmt.Errorf("unabe to create connection pool: %w", err)
-			return
-		}
-		pgDBInstance = &PostgresDB{db: db}
-	})
-
-	if initErr != nil {
-		return nil, initErr
+	if mongoDBConnURI == "" {
+		return nil, errors.New("MONGODB_CONN_STRING has not been defined")
 	}
-	return pgDBInstance, nil
-}
+	clientOptions := options.Client().ApplyURI(mongoDBConnURI)
+	client, err := mongo.Connect(ctx, clientOptions)
 
-func (pgdb *PostgresDB) ExecuteSQLFile(ctx context.Context,filepath string) (string, error) {
-	content, err := os.ReadFile(filepath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	if _, err := pgdb.db.Exec(ctx, string(content)); err != nil {
-		return "", err
+
+	if err = client.Ping(ctx, nil); err != nil {
+		return nil, err
 	}
-	return string(content), nil
-}
-
-func (pgdb *PostgresDB) Ping(ctx context.Context) error {
-	return pgdb.db.Ping(ctx)
-}
-
-func (pgdb *PostgresDB) Close() {
-	pgdb.db.Close()
+	return client, nil
 }
