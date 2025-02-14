@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/akithepriest/click/web"
+	"github.com/akithepriest/click/server"
 	"github.com/joho/godotenv"
 )
 
@@ -19,7 +19,7 @@ func main() {
 		}
 	}
 	
-	server := web.NewWebServer()
+	server := server.NewWebServer()
 	server.BindHandlers()
 	server.Start()
 }
