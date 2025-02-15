@@ -12,4 +12,12 @@ type Handler interface {
 func BindHandlers(e *echo.Echo, db *mongo.Database) {
 	indexGroup := e.Group("")
 	LandingHandler{}.DefineRoutes(indexGroup)
+
+	authGroup := e.Group("/auth")
+	if authHandler, err := NewAuthHandler(db); err != nil {
+		e.Logger.Error("error in auth handler: ", err)
+	} else {
+		authHandler.DefineRoutes(authGroup)
+	}
+
 }
